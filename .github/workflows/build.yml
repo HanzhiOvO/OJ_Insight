@@ -8,6 +8,8 @@ on:
         required: false
         type: string
   push:
+    branches:
+      - 'build/pr13-v0.8.1'
     tags:
       - 'v*'
   pull_request:
