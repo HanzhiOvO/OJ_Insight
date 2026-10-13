@@ -112,7 +112,7 @@ export default function App() {
     dayDetail, dayLoading, difficultyDetail, difficultyLoading,
     loadSnapshot, openDay, closeDay, openDifficulty, closeDifficulty,
   } = useSnapshot({ selectedPlatform, range, metric, accountFilter, sourceFilter, timeZone, notify });
-  const { syncing, syncTip, syncProgress, syncOne, syncAll } = useSync({
+  const { syncing, syncProgress, syncOne, syncAll } = useSync({
     accounts,
     accountsLoaded,
     suppressStartupSync: onboarding.open,
@@ -222,7 +222,7 @@ export default function App() {
        page === 'about' ? <AboutPage syncing={syncing} availableUpdate={availableUpdate} installingUpdate={installingUpdate} updateProgress={updateProgress} updateStage={updateStage} checkUpdate={checkUpdate} installUpdate={installUpdate} cancelUpdate={cancelUpdate} /> :
        page === 'xcpc' ? <XcpcTrackerPage syncing={syncing === 'qoj'} onSync={() => syncOne('qoj').then(() => undefined)} onOpenSettings={() => setPage('settings')} notify={notify} /> :
        embeddedTracker ? null :
-      <DashboardPage platform={selectedPlatform} platformAccounts={selectedPlatform ? accounts[selectedPlatform] : []} accountFilter={accountFilter} setAccountFilter={setAccountFilter} sourceFilter={sourceFilter} setSourceFilter={setSourceFilter} timeScope={timeScope} setTimeScope={setTimeScope} range={range} metric={metric} setMetric={setMetric} timeZone={timeZone} snapshot={snapshot} solvedGains={solvedGains} loading={loading} syncing={syncing} syncTip={syncTip} syncProgress={syncProgress} onSync={() => selectedPlatform ? syncOne(selectedPlatform) : syncAll()} onDay={openDay} onDifficulty={openDifficulty} onPlatform={switchPlatform} onOpenSettings={() => setPage('settings')} />}
+      <DashboardPage platform={selectedPlatform} platformAccounts={selectedPlatform ? accounts[selectedPlatform] : []} accountFilter={accountFilter} setAccountFilter={setAccountFilter} sourceFilter={sourceFilter} setSourceFilter={setSourceFilter} timeScope={timeScope} setTimeScope={setTimeScope} range={range} metric={metric} setMetric={setMetric} timeZone={timeZone} snapshot={snapshot} solvedGains={solvedGains} loading={loading} syncing={syncing} syncProgress={syncProgress} onSync={() => selectedPlatform ? syncOne(selectedPlatform) : syncAll()} onDay={openDay} onDifficulty={openDifficulty} onPlatform={switchPlatform} onOpenSettings={() => setPage('settings')} />}
       {mountedTracker && <div className={`tracker-keepalive-layer ${embeddedTracker === mountedTracker ? 'active' : ''}`} aria-hidden={embeddedTracker !== mountedTracker}><ExternalTrackerPage tracker={mountedTracker} accounts={accounts[mountedTracker] || []} /></div>}
     </main>
     {!isTauri() && <StudyAssistant visible={assistantVisible} expanded={assistantExpanded} onExpand={setAssistantExpanded} onClose={closeAssistant} />}

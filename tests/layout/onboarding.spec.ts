@@ -18,7 +18,7 @@ test('fresh install saves selected accounts, syncs only on request, and complete
   await guide(page).getByRole('button', { name: 'AtCoder', exact: true }).click();
   await guide(page).getByLabel('AtCoder · 账号 ID').fill('chokudai');
   await guide(page).getByRole('button', { name: '保存并继续' }).click();
-  await expect(guide(page).getByRole('heading', { name: '把已有训练记录带进来' })).toBeVisible();
+  await expect(guide(page).getByRole('heading', { name: '同步训练记录' })).toBeVisible();
   expect(await calls(page, 'sync_platform')).toHaveLength(0);
   const saved = await calls(page, 'save_all_accounts');
   expect(saved).toHaveLength(1);
@@ -26,7 +26,7 @@ test('fresh install saves selected accounts, syncs only on request, and complete
   await guide(page).getByRole('button', { name: '开始同步', exact: true }).click();
   await expect(guide(page).locator('.onboarding-sync-status strong').filter({ hasText: '同步成功' })).toHaveCount(2);
   expect((await calls(page, 'sync_platform')).map((call) => call.args.platform)).toEqual(['codeforces', 'atcoder']);
-  await guide(page).getByRole('button', { name: '继续探索' }).click();
+  await guide(page).getByRole('button', { name: '下一步' }).click();
   await guide(page).getByRole('button', { name: '进入总览' }).click();
   await expect(guide(page)).toHaveCount(0);
   // Completing the guide must not trigger another startup sync.
@@ -77,7 +77,7 @@ test('upgrading users are not interrupted and replay preserves all existing cred
   await guide(page).getByRole('button', { name: 'AtCoder', exact: true }).click();
   await guide(page).getByLabel('AtCoder · 账号 ID').fill('bob');
   await guide(page).getByRole('button', { name: '保存并继续' }).click();
-  await expect(guide(page).getByRole('heading', { name: '把已有训练记录带进来' })).toBeVisible();
+  await expect(guide(page).getByRole('heading', { name: '同步训练记录' })).toBeVisible();
   expect((await calls(page, 'save_all_accounts'))[0].args.accounts).toEqual([...accounts, { platform: 'atcoder', account: 'bob', secret: '' }]);
   const state = await page.evaluate(() => localStorage.getItem('oj-insight.onboarding'));
   expect(state).not.toContain('cookie');
@@ -89,7 +89,7 @@ test('save errors keep inputs and allow retry without advancing', async ({ page 
   await start(page);
   await guide(page).getByLabel('Codeforces · 账号 ID').fill('https://codeforces.com/profile/tourist');
   await guide(page).getByRole('button', { name: '保存并继续' }).click();
-  await expect(guide(page).getByRole('alert')).toContainText('不要粘贴完整主页链接');
+  await expect(guide(page).getByRole('alert')).toContainText('不要填完整链接');
   await guide(page).getByLabel('Codeforces · 账号 ID').fill('tourist');
   await page.evaluate(() => { (window as unknown as { __TEST_SAVE_FAIL__: boolean }).__TEST_SAVE_FAIL__ = true; });
   await guide(page).getByRole('button', { name: '保存并继续' }).click();
@@ -97,7 +97,7 @@ test('save errors keep inputs and allow retry without advancing', async ({ page 
   await expect(guide(page).getByLabel('Codeforces · 账号 ID')).toHaveValue('tourist');
   await page.evaluate(() => { (window as unknown as { __TEST_SAVE_FAIL__: boolean }).__TEST_SAVE_FAIL__ = false; });
   await guide(page).getByRole('button', { name: '保存并继续' }).click();
-  await expect(guide(page).getByRole('heading', { name: '把已有训练记录带进来' })).toBeVisible();
+  await expect(guide(page).getByRole('heading', { name: '同步训练记录' })).toBeVisible();
 });
 
 test('reload resumes the sync step and failures remain visible and retryable', async ({ page }) => {
@@ -105,9 +105,9 @@ test('reload resumes the sync step and failures remain visible and retryable', a
   await start(page);
   await guide(page).getByLabel('Codeforces · 账号 ID').fill('tourist');
   await guide(page).getByRole('button', { name: '保存并继续' }).click();
-  await expect(guide(page).getByRole('heading', { name: '把已有训练记录带进来' })).toBeVisible();
+  await expect(guide(page).getByRole('heading', { name: '同步训练记录' })).toBeVisible();
   await page.reload();
-  await expect(guide(page).getByRole('heading', { name: '把已有训练记录带进来' })).toBeVisible();
+  await expect(guide(page).getByRole('heading', { name: '同步训练记录' })).toBeVisible();
   expect(await calls(page, 'sync_platform')).toHaveLength(0);
   await guide(page).getByRole('button', { name: '开始同步' }).click();
   await expect(guide(page).getByRole('button', { name: '跳过向导' })).toBeDisabled();
@@ -118,7 +118,7 @@ test('reload resumes the sync step and failures remain visible and retryable', a
   await guide(page).getByRole('button', { name: '重新同步' }).click();
   await expect(guide(page).getByRole('button', { name: '重新同步' })).toBeEnabled();
   expect(await calls(page, 'sync_platform')).toHaveLength(2);
-  await guide(page).getByRole('button', { name: '继续探索' }).click();
+  await guide(page).getByRole('button', { name: '下一步' }).click();
   await guide(page).getByRole('button', { name: '进入总览' }).click();
   await expect(guide(page)).toHaveCount(0);
 });
@@ -133,7 +133,7 @@ test('retrying a refresh after a successful save does not save accounts twice', 
   await expect(guide(page).getByRole('button', { name: '保存并继续' })).toBeEnabled();
   await page.evaluate(() => { (window as unknown as { __TEST_REFRESH_FAIL__: boolean }).__TEST_REFRESH_FAIL__ = false; });
   await guide(page).getByRole('button', { name: '保存并继续' }).click();
-  await expect(guide(page).getByRole('heading', { name: '把已有训练记录带进来' })).toBeVisible();
+  await expect(guide(page).getByRole('heading', { name: '同步训练记录' })).toBeVisible();
   expect(await calls(page, 'save_all_accounts')).toHaveLength(1);
 });
 
@@ -159,7 +159,7 @@ test.describe('English onboarding', () => {
   test('follows the system language and keeps keyboard focus inside the modal', async ({ page }) => {
     await installTauriMock(page, { onboarding: true });
     await page.goto('/');
-    await expect(guide(page).getByRole('heading', { name: 'Your training, in one place' })).toBeVisible();
+    await expect(guide(page).getByRole('heading', { name: 'Welcome to OJ Insight' })).toBeVisible();
     for (let i = 0; i < 10; i++) {
       await page.keyboard.press('Tab');
       expect(await page.evaluate(() => !!document.activeElement?.closest('dialog'))).toBe(true);

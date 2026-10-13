@@ -20,7 +20,7 @@ interface Props {
   onFinish: (skipped?: boolean, page?: Page) => void;
 }
 
-const steps = ['欢迎使用', '连接账号', '首次同步', '开始探索'];
+const steps = ['欢迎使用', '连接账号', '首次同步', '开始使用'];
 
 export default function OnboardingWizard({ step, onStep, accounts, statuses, syncing, progress, onSaved, onSync, onFinish }: Props) {
   const { t } = useI18n();
@@ -64,21 +64,21 @@ export default function OnboardingWizard({ step, onStep, accounts, statuses, syn
       const account = entry?.account.trim() || '';
       if (!account) continue;
       if (/\s|:\/\//.test(account) || (p === 'nowcoder' && !/^\d+$/.test(account))) {
-        setError(t('请按提示填写 {platform} 的账号 ID，不要粘贴完整主页链接。', { platform: PLATFORM_META[p].name })); return;
+        setError(t('请输入 {platform} 的账号 ID，不要填完整链接。', { platform: PLATFORM_META[p].name })); return;
       }
       if (accounts[p].some((value) => value.account.toLowerCase() === account.toLowerCase())) {
-        setError(t('{platform} 的这个账号已连接，无需重复添加。', { platform: PLATFORM_META[p].name })); return;
+        setError(t('{platform} 已添加这个账号。', { platform: PLATFORM_META[p].name })); return;
       }
       additions.push({ platform: p, account, secret: entry!.secret.trim() });
     }
-    if (!pendingRefresh && !existing.length && !additions.length) { setError(t('请至少填写一个平台账号，或选择稍后设置。')); return; }
+    if (!pendingRefresh && !existing.length && !additions.length) { setError(t('添加一个账号，或选择稍后设置。')); return; }
     lock.current = true; setBusy(true); setError('');
     try {
       if (additions.length && !pendingRefresh) {
         // Read the current database before merging; replay never removes other IDs.
         const latest = await api.getAccounts();
         if (additions.some((entry) => latest.some((value) => value.platform === entry.platform && value.account.toLowerCase() === entry.account.toLowerCase()))) {
-          throw new Error(t('账号列表已变化，请重新打开向导后继续。'));
+          throw new Error(t('账号已在其他位置更新，请重新打开向导。'));
         }
         await api.saveAllAccounts([...latest, ...additions]);
         setPendingRefresh(true);
@@ -113,26 +113,26 @@ export default function OnboardingWizard({ step, onStep, accounts, statuses, syn
     <ol className="onboarding-steps" aria-label={t('用户向导进度')}>{steps.map((label, index) => <li key={label} className={index === step ? 'current' : index < step ? 'done' : ''} aria-current={index === step ? 'step' : undefined}><span>{index < step ? <Check size={13} /> : index + 1}</span>{t(label)}</li>)}</ol>
     <div className="onboarding-body">
       <small className="onboarding-eyebrow">{t('第 {step} 步，共 4 步', { step: step + 1 })}</small>
-      <h2 id="onboarding-title" ref={heading} tabIndex={-1}>{t(['把训练轨迹汇到一起', '先连接一个常用 OJ', '把已有训练记录带进来', '准备好，开始你的训练'][step])}</h2>
+      <h2 id="onboarding-title" ref={heading} tabIndex={-1}>{t(['欢迎使用 OJ Insight', '添加平台账号', '同步训练记录', '开始使用'][step])}</h2>
       <p id="onboarding-description">{t([
-        '几分钟完成账号连接和首次同步，之后就能在本机查看进度、安排训练和复盘比赛。',
-        '填写个人主页中的账号 ID。可以连接多个平台，以后也能在设置中添加同一平台的更多账号。',
-        '同步会读取已连接账号的可用历史。首次同步可能需要几分钟，完成后可离线查看缓存。',
-        '从总览观察进步，或从题单开始练习。你可以随时在设置中重新打开这个向导。',
+        '添加 OJ 账号并同步记录，即可查看统计、整理题单和复盘比赛。',
+        '输入个人主页中的账号 ID。同一平台的其他账号可在设置中添加。',
+        '首次同步可能需要几分钟。同步后可离线查看已保存的记录。',
+        '选择要打开的页面。向导可在设置中重新打开。',
       ][step])}</p>
       {step === 0 && <><div className="onboarding-features">
-        <article><BarChart3 size={22} /><strong>{t('看见进步')}</strong><p>{t('汇总 AC、活动热力图和 Rating，保留各平台的难度体系。')}</p></article>
-        <article><BookOpen size={22} /><strong>{t('安排训练')}</strong><p>{t('整理跨平台题单，创建模拟赛，用解题手记记录思路。')}</p></article>
-        <article><ShieldCheck size={22} /><strong>{t('数据留在本机')}</strong><p>{t('无需注册 OJI 账号。平台账号和登录凭据仅保存在本机。')}</p></article>
-      </div><div className="onboarding-note">{t('只连接你需要的平台即可；账号设置和同步都可以稍后完成。')}</div></>}
+        <article><BarChart3 size={22} /><strong>{t('训练统计')}</strong><p>{t('查看 AC、活动记录、Rating 和难度分布。')}</p></article>
+        <article><BookOpen size={22} /><strong>{t('题单与比赛')}</strong><p>{t('整理题单、创建模拟赛、记录解题笔记。')}</p></article>
+        <article><ShieldCheck size={22} /><strong>{t('本地保存')}</strong><p>{t('账号和记录保存在本机，无需注册 OJI 账号。')}</p></article>
+      </div><div className="onboarding-note">{t('只需添加常用平台，也可以稍后设置。')}</div></>}
       {step === 1 && <>
-        {!!existing.length && <div className="onboarding-note"><strong>{t('已连接账号')}</strong><div className="onboarding-connected">{existing.map((entry) => <span key={`${entry.platform}:${entry.account}`}><PlatformIcon platform={entry.platform} />{entry.account}</span>)}</div><p>{t('已有账号和凭据会保留。下面可添加新的账号。')}</p></div>}
+        {!!existing.length && <div className="onboarding-note"><strong>{t('已连接账号')}</strong><div className="onboarding-connected">{existing.map((entry) => <span key={`${entry.platform}:${entry.account}`}><PlatformIcon platform={entry.platform} />{entry.account}</span>)}</div><p>{t('可继续添加账号，已有账号会保留。')}</p></div>}
         <div className="onboarding-platforms" aria-label={t('选择平台')}>{PLATFORM_ORDER.map((p) => <button key={p} disabled={working || pendingRefresh} aria-pressed={platform === p} className={platform === p ? 'active' : ''} onClick={() => { setPlatform(p); setError(''); }}><PlatformIcon platform={p} />{PLATFORM_META[p].name}{drafts[p]?.account.trim() && <Check size={14} aria-label={t('已填写')} />}</button>)}</div>
         <div className="onboarding-account"><label htmlFor="onboarding-account">{PLATFORM_META[platform].name} · {t('账号 ID')}</label><input id="onboarding-account" value={draft.account} onChange={(event) => change('account', event.target.value)} placeholder={t(PLATFORM_META[platform].accountHint)} disabled={working || pendingRefresh} autoComplete="off" spellCheck={false} /><p>{t(PLATFORM_META[platform].accountHint)}</p>
           {platform !== 'codeforces' && PLATFORM_META[platform].secretHint && <><label htmlFor="onboarding-cookie">{t('Cookie（可选）')}</label><input id="onboarding-cookie" type="password" value={draft.secret} onChange={(event) => change('secret', event.target.value)} placeholder={t(PLATFORM_META[platform].secretHint!)} disabled={working || pendingRefresh} autoComplete="off" /></>}
-          {platform === 'qoj' && <p>{t('QOJ 的完整提交历史需要登录 Cookie；也可以稍后在设置中补充。')}</p>}
-          {platform === 'codeforces' && <p>{t('公开数据无需密码；可选 API Key / Secret 可在账号设置中补充。')}</p>}
-        </div><div className="onboarding-note"><ShieldCheck size={16} />{t('这里只保存账号配置。点击下一步后，由你选择是否同步。')}</div>
+          {platform === 'qoj' && <p>{t('QOJ 完整提交记录需要登录 Cookie，可在设置中补充。')}</p>}
+          {platform === 'codeforces' && <p>{t('无需密码。API Key / Secret 可在账号设置中填写。')}</p>}
+        </div><div className="onboarding-note"><ShieldCheck size={16} />{t('保存后再选择是否同步。')}</div>
       </>}
       {step === 2 && <>
         <div className="onboarding-sync-list" aria-live="polite">{configured.map((p) => {
@@ -141,22 +141,22 @@ export default function OnboardingWizard({ step, onStep, accounts, statuses, syn
           return <article key={p}><PlatformIcon platform={p} /><div><strong>{PLATFORM_META[p].name}</strong><span>{accounts[p].map((entry) => entry.account).join(' · ')}</span></div><div className="onboarding-sync-status"><strong>{syncing === p || syncing === 'all' && status?.status === 'syncing' ? t('同步中') : t(status?.status === 'ok' ? '同步成功' : status?.status === 'warning' ? '部分数据可用' : status?.status === 'error' || status?.status === 'auth_required' ? '同步失败，可重试' : '等待同步')}</strong>{status?.message && <span>{status.message}</span>}</div></article>;
         })}</div>
         {working && progress && <div className="onboarding-progress" role="status"><span>{t('已检查 {done} / {total} 个平台', { done: progress.done, total: progress.total })}</span><progress max={Math.max(1, progress.total)} value={progress.done} /></div>}
-        <div className="onboarding-note">{t('单个平台失败不会清除旧缓存。需要登录或数据不完整时，可在设置 → 数据源中查看详情并重试。')}</div>
+        <div className="onboarding-note">{t('同步失败会保留原有记录。详情见「设置 → 数据源」。')}</div>
       </>}
       {step === 3 && <div className="onboarding-explore">
         {([
-          ['overview', BarChart3, '总览', '切换平台和时间范围；点击活动砖查看当天记录。'],
-          ['problem-sets', BookOpen, '题单', '从推荐题单收藏本地副本，或创建自己的训练题单。'],
-          ['export', Download, '导出', '把活动热力图导出为 PNG 或 SVG。'],
+          ['overview', BarChart3, '总览', '查看训练统计和每日记录。'],
+          ['problem-sets', BookOpen, '题单', '创建题单，或从推荐题单中保存一份。'],
+          ['export', Download, '导出', '保存 PNG 或 SVG 图表。'],
         ] as const).map(([page, Icon, title, description]) => <button key={page} onClick={() => onFinish(false, page)}><Icon size={22} /><div><strong>{t(title)}</strong><span>{t(description)}</span></div><ArrowRight size={18} /></button>)}
       </div>}
       {error && <p className="onboarding-error" role="alert">{error}</p>}
     </div>
     <footer className="onboarding-footer"><button className="onboarding-secondary" disabled={working} onClick={() => step ? onStep(step === 3 && !configured.length ? 1 : step - 1) : onFinish(true)}>{step ? <ChevronLeft size={16} /> : null}{t(step ? '上一步' : '稍后设置')}</button><div>
       {step === 1 && <button className="onboarding-secondary" disabled={working} onClick={() => onStep(3)}>{t('稍后连接')}</button>}
-      {step === 2 && <button className="onboarding-secondary" disabled={working} onClick={() => syncSucceeded ? void sync() : onStep(3)}>{t(syncSucceeded ? '重新同步' : attempted ? '继续探索' : '稍后同步')}</button>}
+      {step === 2 && <button className="onboarding-secondary" disabled={working} onClick={() => syncSucceeded ? void sync() : onStep(3)}>{t(syncSucceeded ? '重新同步' : attempted ? '下一步' : '稍后同步')}</button>}
       <button className="primary" disabled={working || step === 1 && !pendingRefresh && !existing.length && !hasDraft || step === 2 && !configured.length} onClick={() => step === 0 ? onStep(1) : step === 1 ? void save() : step === 2 ? syncSucceeded ? onStep(3) : void sync() : onFinish(false, 'overview')}>
-        {working ? <RefreshCw className="spin" size={16} /> : step === 2 && !syncSucceeded ? <RefreshCw size={16} /> : <ArrowRight size={16} />}{t(working ? '处理中…' : step === 0 ? '开始设置' : step === 1 ? '保存并继续' : step === 2 ? syncSucceeded ? '继续探索' : attempted ? '重新同步' : '开始同步' : '进入总览')}
+        {working ? <RefreshCw className="spin" size={16} /> : step === 2 && !syncSucceeded ? <RefreshCw size={16} /> : <ArrowRight size={16} />}{t(working ? step === 1 ? '保存中…' : '同步中…' : step === 0 ? '开始设置' : step === 1 ? '保存并继续' : step === 2 ? syncSucceeded ? '下一步' : attempted ? '重新同步' : '开始同步' : '进入总览')}
       </button>
     </div></footer>
   </dialog>;
