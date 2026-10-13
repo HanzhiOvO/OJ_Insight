@@ -202,7 +202,6 @@ const english: Record<string, string> = {
   "稍后连接": "Connect later",
   "下一步": "Next",
   "稍后同步": "Sync later",
-  "保存中…": "Saving…",
   "同步中…": "Syncing…",
   "开始设置": "Get started",
   "保存并继续": "Save and continue",
